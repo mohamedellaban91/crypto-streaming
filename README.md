@@ -22,14 +22,38 @@ CoinGecko API → Python Producer → Kafka → PySpark Structured Streaming →
 
 ---
 
+## 📨 Kafka Setup
+
+| Component | Value |
+|-----------|-------|
+| Topic | `crypto_market` |
+| Partitions | 1 |
+| Replication Factor | 1 |
+| Bootstrap Server | `kafka:29092` |
+| Auto Create Topics | Enabled |
+
+### Create Topic Manually
+```bash
+docker exec -it kafka kafka-topics --create \
+  --topic crypto_market \
+  --bootstrap-server localhost:9092 \
+  --partitions 1 \
+  --replication-factor 1
+```
+
+---
+
 ## 📊 Data Warehouse — Star Schema
 
 ### Fact Table
 - `fact_crypto_market_snapshot` — Periodic Snapshot per coin per exchange per hour
 
+### Grain
+One row per coin per exchange per hour
+
 ### Dimension Tables
 - `dim_coin` — Coin details (symbol, name, category)
-- `dim_exchange` — Exchange details
+- `dim_exchange` — Exchange details (name, country)
 - `dim_currency` — Currency codes
 - `dim_time` — Time dimension with smart key (YYYYMMDDHH)
 
@@ -40,7 +64,7 @@ CoinGecko API → Python Producer → Kafka → PySpark Structured Streaming →
 | Layer | Description |
 |-------|-------------|
 | 🥉 Bronze | Raw JSON data from Kafka |
-| 🥈 Silver | Cleaned & transformed data |
+| 🥈 Silver | Cleaned, typed & deduplicated data |
 | 🥇 Gold | Star Schema loaded into Supabase |
 
 ---
